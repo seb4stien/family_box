@@ -86,7 +86,7 @@ class gui:
                     pygame.draw.rect(self.screen, borderColor, (x, y, boxSize, boxSize))
 							
 							
-                    if str(n) == selection:
+                    if n == selection:
                         fg = (255, 0, 0)
                     else:
                         fg = box_fg
@@ -117,11 +117,16 @@ while True:
     event = pygame.event.wait()
 	
     if event.type == pygame.KEYDOWN:
-        if chr(event.key) == 'q':
-	        exit(0)
-        else:
-            print(chr(event.key))
-            selection = chr(event.key)
+        print(event.key)
+        print(event)
+        selection = event.key - 256
+        if selection == 3:
+            exit(0)
+        #if chr(event.key) == 'q':
+	#        exit(0)
+        #else:
+        #    print(chr(event.key))
+        #    selection = chr(event.key)
 		
 	
 # time.sleep(5)
