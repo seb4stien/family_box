@@ -101,11 +101,16 @@ class Gui:
             self.screen.blit(menu_surface, (x + 10, y + int(self.box_size / 2) - 10 + offset))
 
 
-    def drawMenu(self, menu=[], selection=-1):
+    def drawMenu(self, menu=[], selection=-1, error=False):
 
         self.screen.fill((0, 0, 0))
 
         self.drawBox(0, (20, self.height / 2 - self.box_size / 2), 'Accueil')
+
+        if error:
+            error_font = pygame.font.Font(None, 40)
+            error_surface = error_font.render("Une erreur est survenue.", True, (244, 0, 0), (0, 0, 0))
+            self.screen.blit(error_surface, (0, 0))
 
         n = 1
         for row in range(self.rows):
@@ -120,8 +125,8 @@ class Gui:
 
         pygame.display.update()
     
-    def drawHome(self):
-        gui.drawMenu(['Photos', 'Videos'], -1)
+    def drawHome(self, error=False):
+        gui.drawMenu(['Photos', 'Videos'], -1, error=error)
 
     def drawPicturesMenu(self):
         gui.drawMenu(['Toutes', '10|dernieres', '20|dernieres'], selection)
@@ -188,20 +193,30 @@ while True:
             except:
                 selection = event.unicode
 
-        if gui.state == 'pictures':
-            if selection == 1:
-                gui.showSlideshow()
-            if selection == 2:
-                gui.showSlideshow(2)
-            if selection == 3:
-                gui.showSlideshow(3)
+        # Go back to main screen if error
+        try:
+            if gui.state == 'pictures':
+                if selection == 1:
+                    gui.showSlideshow()
+                if selection == 2:
+                    gui.showSlideshow(2)
+                if selection == 3:
+                    gui.showSlideshow(3)
 
 
-        if gui.state == 'home':
-            if selection == 1:
-                gui.state = 'pictures'
-                gui.drawPicturesMenu()
+            if gui.state == 'home':
+                if selection == 1:
+                    gui.state = 'pictures'
+                    gui.drawPicturesMenu()
 
+            error = False
+
+        except:
+            error = True
+
+        if error:
+            gui.state = 'home'
+            gui.drawHome(error)
 
         if selection == 0:
             gui.state = 'home'
