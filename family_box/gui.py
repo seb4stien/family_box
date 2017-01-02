@@ -216,6 +216,13 @@ while True:
                     gui.state = 'pictures'
                     gui.drawPicturesMenu()
 
+                if selection == 2:
+                    gui.state = 'videos'
+                    logging.info("Video")
+                    mov = gui.movie.Movie('data/videos/DSC_0013.MOV')
+                    mov.set_display(gui.screen)
+                    mov.play()
+
             error = False
 
         except:
