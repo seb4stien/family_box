@@ -179,10 +179,14 @@ while True:
     event = pygame.event.wait()
 	
     if event.type == pygame.KEYDOWN:
-        try:
-            selection = int(event.unicode)
-        except:
-            selection = event.unicode
+	print(event)
+        if event.key >= 256:
+            selection = event.key - 256
+        else:
+            try:
+                selection = int(event.unicode)
+            except:
+                selection = event.unicode
 
         if gui.state == 'pictures':
             if selection == 1:
