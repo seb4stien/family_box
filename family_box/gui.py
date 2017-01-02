@@ -6,7 +6,7 @@ import time
 import random
 import platform
 
-class gui:
+class Gui:
     screen = None;
     
     def __init__(self):
@@ -60,59 +60,121 @@ class gui:
         self.cols = 3
         self.rows = 3
         self.margin = 100
+        self.ratio = (self.width + .0) / self.height
+        self.box_size = int((self.height - 2 * self.margin - (self.rows - 1) * self.margin / 2) / self.rows)
 
+        self.state = 'home'
 
     def __del__(self):
         "Destructor to make sure pygame shuts down, etc."
 
-    def drawMenu(self, menu=[], selection=-1):
+		
+    def drawBox(self, n, (x, y), text):
+        
         borderColor = (255, 255, 255)
         lineColor = (64, 64, 64)
-        subDividerColor = (128, 128, 128)
-       
-        boxSize = int((self.height - 2 * self.margin - (self.rows - 1) * self.margin/2)/self.rows)
 
-		
         box_bg = (255, 255, 255)
         box_fg = (0, 0, 120)
 
-		
+        fg = box_fg
+
+        pygame.draw.rect(self.screen, borderColor, (x, y, self.box_size, self.box_size))
+
+        index_font = pygame.font.Font(None, 50)
+        index_surface = index_font.render(" %s " % n, True, box_bg, fg)  # Black text with yellow BG
+        self.screen.blit(index_surface, (x, y))
+
+        if '|' in text:
+            text1, text2 = text.split('|')
+        else:
+            text1 = text
+            text2 = None
+
+        menu_font = pygame.font.Font(None, 40)
+        menu_surface = menu_font.render("%s" % text1, True, fg, box_bg)
+        self.screen.blit(menu_surface, (x + 10, y + int(self.box_size / 2) - 10))
+
+        if text2:
+            offset = menu_surface.get_size()[1]
+            menu_surface = menu_font.render("%s" % text2, True, fg, box_bg)
+            self.screen.blit(menu_surface, (x + 10, y + int(self.box_size / 2) - 10 + offset))
+
+
+    def drawMenu(self, menu=[], selection=-1):
+
+        self.screen.fill((0, 0, 0))
+
+        self.drawBox(0, (20, self.height / 2 - self.box_size / 2), 'Accueil')
+
         n = 1
         for row in range(self.rows):
             for col in range(self.cols):
                 if (n - 1) < len(menu):
-                    x = (self.width - self.cols * boxSize - (self.cols - 1) * self.margin / 2)/2 + boxSize * col + int(self.margin/2) * col
-                    y = self.margin + row * boxSize + row * int(self.margin/2)
-                    pygame.draw.rect(self.screen, borderColor, (x, y, boxSize, boxSize))
-							
-							
-                    if n == selection:
-                        fg = (255, 0, 0)
-                    else:
-                        fg = box_fg
-							
-                    index_font = pygame.font.Font(None, 50)
-                    index_surface = index_font.render(" %s " % n, True, box_bg, fg) # Black text with yellow BG
-                    self.screen.blit(index_surface, (x, y))
-					
-                    menu_font = pygame.font.Font(None, 40)
-                    menu_surface = menu_font.render("%s" % menu[n-1], True, fg, box_bg)
-                    self.screen.blit(menu_surface, (x + 10, y + int(boxSize / 2) - 10))
-				
+                    x = (self.width - self.cols * self.box_size - (self.cols - 1) * self.margin / 2)/2 + self.box_size * col + int(self.margin/2) * col
+                    y = self.margin + row * self.box_size + row * int(self.margin/2)
+
+                    self.drawBox(n, (x, y), menu[n-1])
+
                 n += 1
 
         pygame.display.update()
     
+    def drawHome(self):
+        gui.drawMenu(['Photos', 'Videos'], -1)
 
-# Create an instance of the PyScope class
-scope = gui()
-# Wait 10 seconds
+    def drawPicturesMenu(self):
+        gui.drawMenu(['Toutes', '10|dernieres', '20|dernieres'], selection)
 
-selection = -1
+
+
+
+    def showPicture(self, picture_path):
+        self.screen.fill((0, 0, 0))
+        picture = pygame.image.load(picture_path)
+
+        (width, height) = picture.get_size()
+
+        picture_ratio = (width + .0) / height
+
+        if picture_ratio > self.ratio:
+            picture = pygame.transform.scale(picture, (self.width, int(self.width / picture_ratio)))
+        else:
+            picture = pygame.transform.scale(picture, (int(self.height * picture_ratio), self.height))
+
+        (width, height) = picture.get_size()
+        self.screen.blit(picture, ((self.width - width) / 2, (self.height - height) / 2))
+        pygame.display.flip()
+
+    def showSlideshow(self, n=None):
+        good_pictures = []
+
+        for picture in os.listdir('data/pictures'):
+            if '.' in picture:
+                ext = picture.split('.')[-1].lower()
+
+                if ext in ['jpg', 'jpeg', 'gif', 'png']:
+                    good_pictures.append(
+                        {'name': picture,
+                         'mtime': os.path.getmtime('data/pictures/%s' % picture)}
+                    )
+
+        good_pictures.sort(key = lambda p: p['mtime'])
+        if n and n < len(good_pictures):
+            good_pictures = good_pictures[0:n]
+
+        for picture in good_pictures:
+            self.showPicture('data/pictures/%s' % picture['name'])
+            time.sleep(5)
+
+        self.drawPicturesMenu()
+
+gui = Gui()
+
+gui.drawHome()
 
 while True:
-    
-    scope.drawMenu(['Photos', 'Vidéos'], selection)
+    selection = -1
 
     event = pygame.event.wait()
 	
@@ -122,9 +184,28 @@ while True:
         except:
             selection = event.unicode
 
-        if selection == 3:
+        if gui.state == 'pictures':
+            if selection == 1:
+                gui.showSlideshow()
+            if selection == 2:
+                gui.showSlideshow(2)
+            if selection == 3:
+                gui.showSlideshow(3)
+
+
+        if gui.state == 'home':
+            if selection == 1:
+                gui.state = 'pictures'
+                gui.drawPicturesMenu()
+
+
+        if selection == 0:
+            gui.state = 'home'
+            gui.drawHome()
+
+        if selection == 9:
             exit(0)
-		
+
 	
 # time.sleep(5)
 
