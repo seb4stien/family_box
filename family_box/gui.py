@@ -5,6 +5,9 @@ import pygame
 import time
 import random
 import platform
+import logging
+
+logging.basicConfig(level = logging.DEBUG)
 
 class Gui:
     screen = None;
@@ -152,6 +155,8 @@ class Gui:
         pygame.display.flip()
 
     def showSlideshow(self, n=None):
+	logging.info("Slidshow")
+
         good_pictures = []
 
         for picture in os.listdir('data/pictures'):
@@ -164,10 +169,12 @@ class Gui:
                          'mtime': os.path.getmtime('data/pictures/%s' % picture)}
                     )
 
+	logging.debug("Raw pictures : %s" % good_pictures)
         good_pictures.sort(key = lambda p: p['mtime'])
         if n and n < len(good_pictures):
             good_pictures = good_pictures[0:n]
 
+	logging.debug("Good pictures : %s" % good_pictures)
         for picture in good_pictures:
             self.showPicture('data/pictures/%s' % picture['name'])
             time.sleep(5)
@@ -184,7 +191,7 @@ while True:
     event = pygame.event.wait()
 	
     if event.type == pygame.KEYDOWN:
-	print(event)
+	#print(event)
         if event.key >= 256:
             selection = event.key - 256
         else:
