@@ -117,16 +117,13 @@ while True:
     event = pygame.event.wait()
 	
     if event.type == pygame.KEYDOWN:
-        print(event.key)
-        print(event)
-        selection = event.key - 256
+        try:
+            selection = int(event.unicode)
+        except:
+            selection = event.unicode
+
         if selection == 3:
             exit(0)
-        #if chr(event.key) == 'q':
-	#        exit(0)
-        #else:
-        #    print(chr(event.key))
-        #    selection = chr(event.key)
 		
 	
 # time.sleep(5)
