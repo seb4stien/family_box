@@ -1,4 +1,5 @@
 - hosts: localhost
   tasks:
   - include: "tasks/system.yml"
+  - include: "tasks/network.yml"
   - include: "tasks/family_box.yml"
