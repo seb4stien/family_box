@@ -1,0 +1,18 @@
+#- name: Upgrade to ansible 2.2
+#  pip:
+#    name: ansible
+#    version: 2.2
+
+- name: Install tools
+  apt:
+    name: "{{ item }}"
+  with_items:
+    - apt-transport-https
+    - screen
+    - tree
+    - vim
+
+- name: Set vim as default editor
+  alternatives:
+    name: editor
+    path: /usr/bin/vim

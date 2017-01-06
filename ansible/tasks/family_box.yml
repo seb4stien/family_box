@@ -1,0 +1,11 @@
+- name: Disable screen blanking
+  lineinfile:
+    dest: /etc/kbd/config
+    regexp: '^BLANK_TIME='
+    line: 'BLANK_TIME=0'
+
+- name: Install requirements
+  apt:
+    name: "{{ item }}"
+  with_items:
+    - python-pygame
