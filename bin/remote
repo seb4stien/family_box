@@ -1,0 +1,50 @@
+#!/usr/bin/python
+
+import subprocess
+import os
+from evdev import InputDevice, categorize, ecodes
+
+
+def activate_myself():
+    subprocess.call(["activate-myself"], shell=True)
+
+def display(pictures, pos):
+    ext = pictures[pos].lower().split('.')[-1]
+
+    if ext in ['mov', 'mpg', 'avi']:
+        subprocess.call("show-movie %s" % pictures[pos], shell=True)
+        return "next"
+    else:
+        subprocess.call("show-picture %s" % pictures[pos], shell=True)
+        return "stop"
+
+
+dev = InputDevice('/dev/input/event0')
+
+pictures = sorted(os.listdir("/home/pi/Pictures"))
+
+if pictures:
+    pos = 0
+    picture = pictures[pos]
+
+for event in dev.read_loop():
+    if event.code == 14 and event.value == 1:
+        pos = 0
+        pictures = sorted(os.listdir("/home/pi/Pictures"))
+        activate_myself()
+        display(pictures, pos)
+
+    if event.code == 78 and event.value == 1:
+        pos = (pos + 1) % len(pictures)
+        ret = display(pictures, pos)
+        if ret == "next":
+            pos = (pos + 1) % len(pictures)
+            ret = display(pictures, pos)
+            
+    if event.code == 75 and event.value == 1:
+        pos = (pos - 1) % len(pictures)
+        ret = display(pictures, pos)
+        if ret == "next":
+            pos = (pos - 1) % len(pictures)
+            ret = display(pictures, pos)
+
