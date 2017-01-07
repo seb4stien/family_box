@@ -1,0 +1,16 @@
+
+apt-get install git
+
+http://raspberrypi.stackexchange.com/questions/23182/how-to-stream-video-from-raspberry-pi-camera-and-watch-it-live
+git clone https://github.com/mpromonet/h264_v4l2_rtspserver.git
+
+apt-get install  cmake cmake-data libarchive13 liblzo2-2
+
+
+raspivid -o - -t 0 -hf -w 640 -h 360 -fps 20 | cvlc -vvv stream:///dev/stdin --sout '#rtp{sdp=rtsp://:8554}' :demux=h264
+
+https://planb.nicecupoftea.org/2015/07/28/hackspacehat-part-1-webrtc-janus-and-gstreamer/
+
+deb http://www.linux-projects.org/listing/uv4l_repo/raspbian/ jessie main
+
+http://www.linux-projects.org/uv4l/
