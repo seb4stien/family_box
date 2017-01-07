@@ -3,6 +3,9 @@
 #    name: ansible
 #    version: 2.2
 
+- name: Update APT cache
+  apt: update_cache=yes cache_valid_time=3600
+
 - name: Install tools
   apt:
     name: "{{ item }}"
@@ -16,3 +19,40 @@
   alternatives:
     name: editor
     path: /usr/bin/vim
+
+- name: "Secure SSH: disable root login"
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    regexp: "^PermitRootLogin"
+    line: "PermitRootLogin no"
+
+- name: "Secure SSH: disable password auth"
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    regexp: "^PasswordAuthentication"
+    line: "PasswordAuthentication no"
+
+- name: Create default user
+  user:
+    name: "{{ default_user }}"
+    comment: "Default user"
+
+- name: Add authorized_keys
+  file:
+    path: "/home/{{ default_user }}/.ssh/"
+    state: directory
+
+- name: Add authorized_keys
+  copy:
+    dest: "/home/{{ default_user }}/.ssh/authorized_keys"
+    src: "files/home/user/.ssh/id_dsa.pub"
+
+- name: Add sudo for default_user
+  copy:
+    dest: /etc/sudoers.d/010_defaut_user-nopasswd
+    content: "{{ default_user }} ALL=(ALL) NOPASSWD: ALL"
+
+#- name: Remove 'pi' user
+#  name: pi
+#  state: absent
+#

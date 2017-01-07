@@ -1,5 +1,9 @@
 - hosts: localhost
+
+  vars:
+  - default_user: fbox
+
   tasks:
   - include: "tasks/system.yml"
-  - include: "tasks/network.yml"
   - include: "tasks/family_box.yml"
+  - include: "tasks/network.yml"
