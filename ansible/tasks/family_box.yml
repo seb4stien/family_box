@@ -4,6 +4,12 @@
     regexp: '^BLANK_TIME='
     line: 'BLANK_TIME=0'
 
+- name: Disable auto start on TV
+  lineinfile:
+    dest: /boot/config.txt
+    regexp: '^hdmi_ignore_cec_init='
+    line: 'hdmi_ignore_cec_init=1'
+
 - name: Install requirements
   apt:
     name: "{{ item }}"
