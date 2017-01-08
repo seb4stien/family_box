@@ -1,12 +1,5 @@
 - hosts: localhost
 
-  vars:
-  - default_user: family_pi
-  - ssh_port: 29226
-  - host_name: pi_grandma
-  - host_domain: familypi.net
-  - mail_relay: smtp.free.fr
-
   handlers:
   - include: "handlers/main.yml"
 
