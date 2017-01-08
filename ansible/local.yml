@@ -5,5 +5,8 @@
 
   tasks:
   - include: "tasks/system.yml"
-  - include: "tasks/family_box.yml"
+    tags: system
   - include: "tasks/network.yml"
+    tags: system
+  - include: "tasks/family_box.yml"
+    tags: family_box

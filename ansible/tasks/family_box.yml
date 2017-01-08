@@ -15,3 +15,14 @@
     name: "{{ item }}"
   with_items:
     - python-pygame
+
+- name: Create data directories
+  file:
+    path: "{{ item }}"
+    owner: family_pi
+    state: directory
+  with_items:
+    - /srv/family_pi
+    - /srv/family_pi/videos
+    - /srv/family_pi/pictures
+    - /srv/family_pi/movies
