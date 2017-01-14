@@ -24,6 +24,15 @@
     - traceroute
     - python-numpy
 
+- name: Remove uneeded dependencies
+  shell: apt-get -y autoremove
+  register: autoremove
+  changed_when: '"0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded." not in autoremove.stdout_lines'
+
+- name: Upgrade system
+  apt:
+    upgrade: safe
+
 - name: Set hostname
   hostname:
     name: "{{ host_name }}"
