@@ -1,7 +1,10 @@
-#- name: Upgrade to ansible 2.2
-#  pip:
-#    name: ansible
-#    version: 2.2
+- name: Update APT cache
+  apt: update_cache=yes cache_valid_time=3600
+
+- name: Install etckeeper
+  apt:
+    name: etckeeper
+
 - name: Set hostname
   hostname:
     name: "{{ host_name }}"  
@@ -22,9 +25,6 @@
     - { question: 'postfix/main_mailer_type', value: 'Internet with smarthost', vtype: 'string' }
     - { question: 'postfix/relayhost', value: '{{ mail_relay }}', vtype: 'string' }
     - { question: 'postifx/destinations', value: '{{ host_name }}, {{host_name}}.{{host_domain}}, localhost, localhost.localdomain', vtype: 'string' }
-
-- name: Update APT cache
-  apt: update_cache=yes cache_valid_time=3600
 
 - name: Install tools
   apt:
@@ -84,7 +84,20 @@
     state: present
   notify: restart ssh
 
-#- name: Remove 'pi' user
-#  name: pi
-#  state: absent
-#
+- name: Remove 'pi' user
+  user:
+    name: pi
+    state: absent
+    force: yes
+
+- name: Remove 'pi' sudos
+  file:
+    path: /etc/sudoers.d/010_pi-nopasswd
+    state: absent
+
+- name: Disable IPv6
+  copy:
+    src: files/boot/cmdline.txt
+    dest: /boot/cmdline.txt
+    owner: root
+    group: root
