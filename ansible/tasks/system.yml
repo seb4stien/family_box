@@ -5,6 +5,25 @@
   apt:
     name: etckeeper
 
+- name: Remove unused packages
+  apt:
+    name: '{{ item }}'
+    state: absent
+  with_items:
+    - cpp
+    - gdb
+    - gcc-4.9
+    - g++-4.9
+    - fakeroot
+    - make
+    - netcat-traditional
+    - netcat-openbsd
+    - nfs-common
+    - rpcbind
+    - samba-common
+    - traceroute
+    - python-numpy
+
 - name: Set hostname
   hostname:
     name: "{{ host_name }}"  
