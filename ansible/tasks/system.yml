@@ -94,3 +94,10 @@
   file:
     path: /etc/sudoers.d/010_pi-nopasswd
     state: absent
+
+- name: Disable IPv6
+  copy:
+    src: files/boot/cmdline.txt
+    dest: /boot/cmdline.txt
+    owner: root
+    group: root
