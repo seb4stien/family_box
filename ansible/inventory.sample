@@ -9,3 +9,4 @@ ssh_port=10022
 host_name=pi_xxx
 host_domain=
 mail_relay=
+admin_mail=
