@@ -7,7 +7,7 @@
   - include: "tasks/system.yml"
     tags: system
   - include: "tasks/network.yml"
-    tags: system
+    tags: network
   - include: "tasks/cron.yml"
     tags: cron
   - include: "tasks/family_box.yml"
