@@ -7,7 +7,7 @@
 
 - name: Set hostname
   hostname:
-    name: "{{ host_name }}"  
+    name: "{{ host_name }}"
 
 - name: Set hostname
   template:
@@ -22,9 +22,21 @@
     vtype: '{{ item.vtype }}'
   with_items:
     - { question: 'postfix/mailname', value: '{{ host_name }}.{{ host_domain }}', vtype: 'string' }
-    - { question: 'postfix/main_mailer_type', value: 'Internet with smarthost', vtype: 'string' }
+    - { question: 'postfix/root_address', value: '{{ admin_mail }}', vtype: 'string' }
+    - { question: 'postfix/main_mailer_type', value: 'Satellite system', vtype: 'string' }
     - { question: 'postfix/relayhost', value: '{{ mail_relay }}', vtype: 'string' }
-    - { question: 'postifx/destinations', value: '{{ host_name }}, {{host_name}}.{{host_domain}}, localhost, localhost.localdomain', vtype: 'string' }
+    - { question: 'postfix/protocols', value: 'ipv4', vtype: 'string' }
+    - { question: 'postfix/destinations', value: '{{ host_name }}, {{host_name}}.{{host_domain}}, localhost, localhost.localdomain', vtype: 'string' }
+  tags:
+    - postfix
+  register: postfix_conf
+
+- name: Relay mail to admin
+  copy:
+    content: "{{ admin_mail }}"
+    dest: /root/.forward
+  tags:
+    - postfix
 
 - name: Install tools
   apt:
