@@ -3,3 +3,10 @@
     src: templates/etc/wpa_supplicant/wpa_supplicant.conf
     dest: /etc/wpa_supplicant/wpa_supplicant.conf
     mode: 0600
+
+- name: Disable IPv6
+  copy:
+    src: files/boot/cmdline.txt
+    dest: /boot/cmdline.txt
+    owner: root
+    group: root

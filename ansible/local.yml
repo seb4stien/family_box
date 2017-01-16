@@ -1,13 +1,16 @@
-- hosts: localhost
+- hosts: pi
+  become: true
 
   handlers:
   - include: "handlers/main.yml"
 
   tasks:
-  - include: "tasks/system.yml"
-    tags: system
-  - include: "tasks/network.yml"
+  - include: "tasks/configure_network.yml"
     tags: network
+  - include: "tasks/configure_access.yml"
+    tags: access 
+  - include: "tasks/configure_system.yml"
+    tags: system
   - include: "tasks/cron.yml"
     tags: cron
   - include: "tasks/family_box.yml"

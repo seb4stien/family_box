@@ -22,7 +22,19 @@
     owner: family_pi
     state: directory
   with_items:
-    - /srv/family_pi
-    - /srv/family_pi/videos
-    - /srv/family_pi/pictures
-    - /srv/family_pi/movies
+    - "/srv/family_pi"
+    - "/srv/family_pi/videos"
+    - "/srv/family_pi/pictures"
+    - "/srv/family_pi/movies"
+
+- name: "Set sudo to light on/off"
+  lineinfile:
+    create: yes
+    dest: "/etc/sudoers.d/090_family_py"
+    line: "family_pi ALL=(ALL) NOPASSWD: {{ app_path }}/bin/light-on, NOPASSWD: {{ app_path }}/light-off"
+    validate: 'visudo -cf %s'
+
+- name: Install app
+  git:
+    repo: https://github.com/seb4stien/family_box.git
+    dest: "{{ app_path }}"
