@@ -7,7 +7,21 @@ import random
 import platform
 import logging
 
+import sys
+import traceback
+
 logging.basicConfig(level = logging.DEBUG)
+
+def get_selection(event):
+    if event.key >= 256:
+        selection = event.key - 256
+    else:
+        try:
+            selection = int(event.unicode)
+        except:
+            selection = event.unicode
+
+    return selection
 
 class Gui:
     screen = None;
@@ -50,8 +64,9 @@ class Gui:
         print "Framebuffer size: %d x %d" % (self.width, self.height)
 
         self.screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
+        #self.screen = pygame.display.set_mode((1000, 800))
         # Clear the screen to start
-        self.screen.fill((0, 0, 0))        
+        self.screen.fill((0, 0, 0))
         # Initialise font support
         pygame.font.init()
         # Render the screen
@@ -104,9 +119,13 @@ class Gui:
             self.screen.blit(menu_surface, (x + 10, y + int(self.box_size / 2) - 10 + offset))
 
 
-    def drawMenu(self, menu=[], selection=-1, error=False):
+    def drawMenu(self, title, menu=[], selection=-1, error=False):
 
         self.screen.fill((0, 0, 0))
+
+        title_font = pygame.font.Font(None, 40)
+        title_surface = title_font.render(title, True, (0, 0, 240), (0, 0, 0))
+        self.screen.blit(title_surface, (0, 0))
 
         self.drawBox(0, (20, self.height / 2 - self.box_size / 2), 'Accueil')
 
@@ -122,17 +141,21 @@ class Gui:
                     x = (self.width - self.cols * self.box_size - (self.cols - 1) * self.margin / 2)/2 + self.box_size * col + int(self.margin/2) * col
                     y = self.margin + row * self.box_size + row * int(self.margin/2)
 
-                    self.drawBox(n, (x, y), menu[n-1])
+                    if menu[n-1]:
+                        self.drawBox(n, (x, y), menu[n-1])
 
                 n += 1
 
         pygame.display.update()
     
     def drawHome(self, error=False):
-        gui.drawMenu(['Photos', 'Videos'], -1, error=error)
+        gui.drawMenu('Accueil', ['Photos', None, None,
+                       None, None, None,
+                       'Nouvelles|photos', None, None], -1, error=error)
 
     def drawPicturesMenu(self):
-        gui.drawMenu(['Toutes', '10|dernieres', '20|dernieres'], selection)
+        gui.drawMenu('Photos', ['Toutes', None, None,
+                      '10|dernieres', '20|dernieres'], selection)
 
 
 
@@ -152,10 +175,16 @@ class Gui:
 
         (width, height) = picture.get_size()
         self.screen.blit(picture, ((self.width - width) / 2, (self.height - height) / 2))
+#        pygame.display.flip()
+
+        menu_font = pygame.font.Font(None, 40)
+        menu_surface = menu_font.render("Appuyer sur : 0 pour arreter, 4 pour la photo precedente, 6 pour la photo suivante", True, (0, 0, 230), (0, 0, 0))
+        self.screen.blit(menu_surface, (0, 0))
         pygame.display.flip()
 
+
     def showSlideshow(self, n=None):
-	logging.info("Slidshow")
+        logging.info("Slideshow")
 
         good_pictures = []
 
@@ -169,15 +198,42 @@ class Gui:
                          'mtime': os.path.getmtime('data/pictures/%s' % picture)}
                     )
 
-	logging.debug("Raw pictures : %s" % good_pictures)
+        logging.debug("Raw pictures : %s" % good_pictures)
         good_pictures.sort(key = lambda p: p['mtime'])
         if n and n < len(good_pictures):
             good_pictures = good_pictures[0:n]
 
-	logging.debug("Good pictures : %s" % good_pictures)
-        for picture in good_pictures:
-            self.showPicture('data/pictures/%s' % picture['name'])
-            time.sleep(5)
+        logging.debug("Good pictures : %s" % good_pictures)
+        stopped = False
+
+        nb_pictures = len(good_pictures)
+        current_picture = 0
+
+        while True:
+            self.showPicture('data/pictures/%s' % good_pictures[current_picture]['name'])
+
+            while True:
+                event = pygame.event.wait()
+
+                if event.type == pygame.KEYDOWN:
+                    selection = get_selection(event)
+                    if selection == 0:
+                        stopped = True
+                        break
+
+                    if selection == 4:
+                        current_picture = max(current_picture - 1, 0)
+                        break
+
+                    if selection == 6:
+                        current_picture = min(current_picture + 1, nb_pictures - 1)
+                        break
+
+                if stopped:
+                    break
+
+            if stopped:
+                break
 
         self.drawPicturesMenu()
 
@@ -192,13 +248,7 @@ while True:
 	
     if event.type == pygame.KEYDOWN:
 	#print(event)
-        if event.key >= 256:
-            selection = event.key - 256
-        else:
-            try:
-                selection = int(event.unicode)
-            except:
-                selection = event.unicode
+        selection = get_selection(event)
 
         # Go back to main screen if error
         try:
@@ -216,17 +266,20 @@ while True:
                     gui.state = 'pictures'
                     gui.drawPicturesMenu()
 
-                if selection == 2:
-                    gui.state = 'videos'
-                    logging.info("Video")
-                    mov = gui.movie.Movie('data/videos/DSC_0013.MOV')
-                    mov.set_display(gui.screen)
-                    mov.play()
+                #if selection == 2:
+                #    gui.state = 'videos'
+                #    logging.info("Video")
+                #    mov = gui.movie.Movie('data/videos/DSC_0013.MOV')
+                #    mov.set_display(gui.screen)
+                #    mov.play()
 
             error = False
 
         except:
             error = True
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            traceback.print_exc(exc_traceback)
+
 
         if error:
             gui.state = 'home'
