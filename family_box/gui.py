@@ -142,7 +142,7 @@ class Gui:
                     y = self.margin + row * self.box_size + row * int(self.margin/2)
 
                     if menu[n-1]:
-                        self.drawBox(n, (x, y), menu[n-1])
+                        self.drawBox(n, (x, self.height - y - self.box_size), menu[n-1])
 
                 n += 1
 
