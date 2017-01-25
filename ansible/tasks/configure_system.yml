@@ -5,30 +5,6 @@
   apt:
     name: etckeeper
 
-- name: Remove unused packages
-  apt:
-    name: '{{ item }}'
-    state: absent
-  with_items:
-    - cpp
-    - gdb
-    - gcc-4.9
-    - g++-4.9
-    - fakeroot
-    - make
-    - netcat-traditional
-    - netcat-openbsd
-    - nfs-common
-    - rpcbind
-    - samba-common
-    - traceroute
-    - python-numpy
-
-- name: Remove uneeded dependencies
-  shell: apt-get -y autoremove
-  register: autoremove
-  changed_when: '"0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded." not in autoremove.stdout_lines'
-
 - name: Upgrade system
   apt:
     upgrade: safe
