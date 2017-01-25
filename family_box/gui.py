@@ -286,7 +286,9 @@ while True:
             if gui.state == 'movies':
                 new_path = gui.current_choices[selection - 1]
                 if os.path.isfile(new_path):
-                    gui.showMovie(new_path)
+                    player = OMXPlayer(new_path)
+                    sleep(2)
+                    print("Play")
                 else:
                     gui.drawExplorerMenu('toto', new_path)
 
