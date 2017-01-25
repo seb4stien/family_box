@@ -118,6 +118,28 @@ class Gui:
             menu_surface = menu_font.render("%s" % text2, True, fg, box_bg)
             self.screen.blit(menu_surface, (x + 10, y + int(self.box_size / 2) - 10 + offset))
 
+    def drawExplorerMenu(self, title, path):
+        self.screen.fill((0, 0, 0))
+
+        title_font = pygame.font.Font(None, 40)
+        title_surface = title_font.render(title, True, (0, 0, 240), (0, 0, 0))
+        self.screen.blit(title_surface, (0, 0))
+
+        self.drawBox(0, (20, self.height / 2 - self.box_size / 2), 'Accueil')
+
+        font_size = 40
+        entry_font = pygame.font.Font(None, font_size)
+
+        n = 1
+        self.current_choices = []
+        for file in os.listdir(os.path.join(os.getcwd(), 'data', path)):
+            self.current_choices.append(os.path.join(os.getcwd(), 'data', path, file))
+            entry_surface = entry_font.render(str(n) + " - " + file, True, (150, 150, 250), (0, 0, 0))
+            self.screen.blit(entry_surface, (self.box_size + 100, font_size + font_size * n))
+            n += 1
+
+        pygame.display.update()
+
 
     def drawMenu(self, title, menu=[], selection=-1, error=False):
 
@@ -149,15 +171,20 @@ class Gui:
         pygame.display.update()
     
     def drawHome(self, error=False):
-        gui.drawMenu('Accueil', ['Photos', None, None,
+        gui.drawMenu('Accueil', ['Photos', 'Videos', 'Films',
                        None, None, None,
-                       'Nouvelles|photos', None, None], -1, error=error)
+                       None, None, None], -1, error=error)
 
     def drawPicturesMenu(self):
         gui.drawMenu('Photos', ['Toutes', None, None,
-                      '10|dernieres', '20|dernieres'], selection)
+                      '10|dernieres', '20|dernieres'])
 
+    def drawVideosMenu(self):
+        gui.drawMenu('Videos', ['Toutes'])
 
+    def drawMoviesMenu(self):
+        gui.current_path = 'movies/'
+        gui.drawExplorerMenu('Films', 'movies/')
 
 
     def showPicture(self, picture_path):
@@ -252,6 +279,13 @@ while True:
 
         # Go back to main screen if error
         try:
+            if gui.state == 'movies':
+                new_path = gui.current_choices[selection - 1]
+                if os.path.isfile(new_path):
+                    gui.showMovie(new_path)
+                else:
+                    gui.drawExplorerMenu('toto', new_path)
+
             if gui.state == 'pictures':
                 if selection == 1:
                     gui.showSlideshow()
@@ -260,11 +294,18 @@ while True:
                 if selection == 3:
                     gui.showSlideshow(3)
 
-
             if gui.state == 'home':
                 if selection == 1:
                     gui.state = 'pictures'
                     gui.drawPicturesMenu()
+
+                if selection == 2:
+                    gui.state = 'videos'
+                    gui.drawVideosMenu()
+
+                if selection == 3:
+                    gui.state = 'movies'
+                    gui.drawMoviesMenu()
 
                 #if selection == 2:
                 #    gui.state = 'videos'
