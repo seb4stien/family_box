@@ -39,6 +39,8 @@ class Gui:
 
         if platform.system() == 'Windows':
             os.environ['SDL_VIDEODRIVER'] = 'windib'
+        else:
+            import omxplayer
 
         if disp_no:
             print "I'm running under X display = {0}".format(disp_no)
@@ -137,7 +139,7 @@ class Gui:
         n = 1
         self.current_choices = []
         for file in os.listdir(os.path.join(data_dir, path)):
-            self.current_choices.append(os.path.join(data_dir, path, file))
+            self.current_choices.append(os.path.join(path, file))
             entry_surface = entry_font.render(str(n) + " - " + file, True, (150, 150, 250), (0, 0, 0))
             self.screen.blit(entry_surface, (self.box_size + 100, font_size + font_size * n))
             n += 1
@@ -187,8 +189,8 @@ class Gui:
         gui.drawMenu('Videos', ['Toutes'])
 
     def drawMoviesMenu(self):
-        gui.current_path = 'movies/'
-        gui.drawExplorerMenu('Films', 'movies/')
+        gui.current_path = 'Films'
+        gui.drawExplorerMenu('Films', 'Films')
 
 
     def showPicture(self, picture_path):
@@ -219,14 +221,14 @@ class Gui:
 
         good_pictures = []
 
-        for picture in os.listdir(os.path.join(data_dir, 'pictures')):
+        for picture in os.listdir(os.path.join(data_dir, 'Photos')):
             if '.' in picture:
                 ext = picture.split('.')[-1].lower()
 
                 if ext in ['jpg', 'jpeg', 'gif', 'png']:
                     good_pictures.append(
                         {'name': picture,
-                         'mtime': os.path.getmtime(os.path.join(data_dir, 'pictures', picture))}
+                         'mtime': os.path.getmtime(os.path.join(data_dir, 'Photos', picture))}
                     )
 
         logging.debug("Raw pictures : %s" % good_pictures)
@@ -241,7 +243,7 @@ class Gui:
         current_picture = 0
 
         while True:
-            self.showPicture(os.path.join(data_dir, 'pictures', good_pictures[current_picture]['name']))
+            self.showPicture(os.path.join(data_dir, 'Photos', good_pictures[current_picture]['name']))
 
             while True:
                 event = pygame.event.wait()
@@ -285,12 +287,12 @@ while True:
         try:
             if gui.state == 'movies':
                 new_path = gui.current_choices[selection - 1]
-                if os.path.isfile(new_path):
+                if os.path.isfile(os.path.join(data_dir, new_path)):
                     player = OMXPlayer(new_path)
                     sleep(2)
                     print("Play")
                 else:
-                    gui.drawExplorerMenu('toto', new_path)
+                    gui.drawExplorerMenu(new_path, new_path)
 
             if gui.state == 'pictures':
                 if selection == 1:
