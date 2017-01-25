@@ -12,6 +12,10 @@ import traceback
 
 logging.basicConfig(level = logging.DEBUG)
 
+data_dir = os.getenv('FAMILY_BOX_DATA')
+if not data_dir:
+    data_dir = 'data/'
+
 def get_selection(event):
     if event.key >= 256:
         selection = event.key - 256
@@ -132,8 +136,8 @@ class Gui:
 
         n = 1
         self.current_choices = []
-        for file in os.listdir(os.path.join(os.getcwd(), 'data', path)):
-            self.current_choices.append(os.path.join(os.getcwd(), 'data', path, file))
+        for file in os.listdir(os.path.join(data_dir, path)):
+            self.current_choices.append(os.path.join(data_dir, path, file))
             entry_surface = entry_font.render(str(n) + " - " + file, True, (150, 150, 250), (0, 0, 0))
             self.screen.blit(entry_surface, (self.box_size + 100, font_size + font_size * n))
             n += 1
@@ -215,14 +219,14 @@ class Gui:
 
         good_pictures = []
 
-        for picture in os.listdir('data/pictures'):
+        for picture in os.listdir(os.path.join(data_dir, 'pictures')):
             if '.' in picture:
                 ext = picture.split('.')[-1].lower()
 
                 if ext in ['jpg', 'jpeg', 'gif', 'png']:
                     good_pictures.append(
                         {'name': picture,
-                         'mtime': os.path.getmtime('data/pictures/%s' % picture)}
+                         'mtime': os.path.getmtime(os.path.join(data_dir, 'pictures', picture))}
                     )
 
         logging.debug("Raw pictures : %s" % good_pictures)
@@ -237,7 +241,7 @@ class Gui:
         current_picture = 0
 
         while True:
-            self.showPicture('data/pictures/%s' % good_pictures[current_picture]['name'])
+            self.showPicture(os.path.join(data_dir, 'pictures', good_pictures[current_picture]['name']))
 
             while True:
                 event = pygame.event.wait()
