@@ -12,6 +12,11 @@ import traceback
 
 logging.basicConfig(level = logging.DEBUG)
 
+if platform.system() == 'Windows':
+    os.environ['SDL_VIDEODRIVER'] = 'windib'
+else:
+    from omxplayer import OMXPlayer
+
 data_dir = os.getenv('FAMILY_BOX_DATA')
 if not data_dir:
     data_dir = 'data/'
@@ -36,11 +41,6 @@ class Gui:
         # http://www.karoltomala.com/blog/?p=679
 	# and https://learn.adafruit.com/pi-video-output-using-pygame/pointing-pygame-to-the-framebuffer
         disp_no = os.getenv("DISPLAY")
-
-        if platform.system() == 'Windows':
-            os.environ['SDL_VIDEODRIVER'] = 'windib'
-        else:
-            import omxplayer
 
         if disp_no:
             print "I'm running under X display = {0}".format(disp_no)
@@ -288,8 +288,8 @@ while True:
             if gui.state == 'movies':
                 new_path = gui.current_choices[selection - 1]
                 if os.path.isfile(os.path.join(data_dir, new_path)):
-                    player = OMXPlayer(new_path)
-                    sleep(2)
+                    player = OMXPlayer(os.path.join(data_dir, new_path))
+                    time.sleep(2)
                     print("Play")
                 else:
                     gui.drawExplorerMenu(new_path, new_path)
