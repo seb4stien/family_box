@@ -290,7 +290,14 @@ while True:
                 if os.path.isfile(os.path.join(data_dir, new_path)):
                     player = OMXPlayer(os.path.join(data_dir, new_path))
                     time.sleep(2)
-                    print("Play")
+                    while player.is_playing():
+                        print("Playing")
+                        event = pygame.event.poll()
+                        sel = get_selection(event)
+                        if sel == 0:
+                            player.stop()
+                        time.sleep(1)
+                    gui.drawExplorerMenu(data_dir, os.path.join(new_path.split('/')[:-1]))
                 else:
                     gui.drawExplorerMenu(new_path, new_path)
 
