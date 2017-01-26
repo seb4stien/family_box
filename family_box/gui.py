@@ -288,16 +288,33 @@ while True:
             if gui.state == 'movies':
                 new_path = gui.current_choices[selection - 1]
                 if os.path.isfile(os.path.join(data_dir, new_path)):
+                    menu_font = pygame.font.Font(None, 40)
+                    menu_surface = menu_font.render(
+                        "Appuyer sur : 0 pour arreter, 4 pour reculer, 5 pour pause, 6 pour accelerer", True,
+                        (0, 0, 230), (0, 0, 0))
+                    self.screen.blit(menu_surface, (0, 0))
+                    pygame.display.flip()
+
                     player = OMXPlayer(os.path.join(data_dir, new_path))
                     time.sleep(2)
                     while player.is_playing():
                         print("Playing")
                         event = pygame.event.poll()
                         sel = get_selection(event)
+                        sleep = 1
                         if sel == 0:
                             player.stop()
-                        time.sleep(1)
-                    gui.drawExplorerMenu(data_dir, os.path.join(new_path.split('/')[:-1]))
+                        if sel == 5:
+                            player.pause()
+                        if sel == 4:
+                            player.seek(-60)
+                            sleep = 0
+                        if sel == 6:
+                            player.seek(60)
+                            sleep = 0
+                        time.sleep(0)
+                    new_path = os.path.join(new_path.split('/')[:-1])
+                    gui.drawExplorerMenu(data_dir, new_path)
                 else:
                     gui.drawExplorerMenu(new_path, new_path)
 
