@@ -92,6 +92,14 @@ class Gui:
     def __del__(self):
         "Destructor to make sure pygame shuts down, etc."
 
+    def clear(self):
+        self.screen.fill((0, 0, 0))
+
+    def drawTopMenu(self, text, color=(0, 0, 230)):
+        menu_font = pygame.font.Font(None, 40)
+        menu_surface = menu_font.render(text, True, color, (0, 0, 0))
+        self.screen.blit(menu_surface, (0, 0))
+
 		
     def drawBox(self, n, (x, y), text):
         
@@ -149,18 +157,14 @@ class Gui:
 
     def drawMenu(self, title, menu=[], selection=-1, error=False):
 
-        self.screen.fill((0, 0, 0))
+        self.clear()
 
-        title_font = pygame.font.Font(None, 40)
-        title_surface = title_font.render(title, True, (0, 0, 240), (0, 0, 0))
-        self.screen.blit(title_surface, (0, 0))
+        self.drawTopMenu(title)
 
         self.drawBox(0, (20, self.height / 2 - self.box_size / 2), 'Accueil')
 
         if error:
-            error_font = pygame.font.Font(None, 40)
-            error_surface = error_font.render("Une erreur est survenue.", True, (244, 0, 0), (0, 0, 0))
-            self.screen.blit(error_surface, (0, 0))
+            self.drawTopMenu("Une erreur est survenur", color=(244, 0, 0))
 
         n = 1
         for row in range(self.rows):
@@ -193,8 +197,9 @@ class Gui:
         gui.drawExplorerMenu('Films', 'Films')
 
 
-    def showPicture(self, picture_path):
-        self.screen.fill((0, 0, 0))
+    def showPicture(self, picture_path, current, nb):
+        self.clear()
+
         picture = pygame.image.load(picture_path)
 
         (width, height) = picture.get_size()
@@ -208,11 +213,15 @@ class Gui:
 
         (width, height) = picture.get_size()
         self.screen.blit(picture, ((self.width - width) / 2, (self.height - height) / 2))
-#        pygame.display.flip()
 
-        menu_font = pygame.font.Font(None, 40)
-        menu_surface = menu_font.render("Appuyer sur : 0 pour arreter, 4 pour la photo precedente, 6 pour la photo suivante", True, (0, 0, 230), (0, 0, 0))
-        self.screen.blit(menu_surface, (0, 0))
+        if current == 0:
+            title = "Appuyer sur 0 pour quitter ou 6 pour la photo suivante"
+        elif current == nb - 1:
+            title = "Appuyer sur 0 pour quitter, 4 pour la photo precedente"
+        else:
+            title = "Appuyer sur 0 pour quitter, 4 pour la photo precedente ou 6 pour la photo suivante"
+
+        self.drawTopMenu("Photo %d sur %d : " % (current + 1, nb) + title)
         pygame.display.flip()
 
 
@@ -243,7 +252,9 @@ class Gui:
         current_picture = 0
 
         while True:
-            self.showPicture(os.path.join(data_dir, 'Photos', good_pictures[current_picture]['name']))
+            self.showPicture(os.path.join(data_dir, 'Photos', good_pictures[current_picture]['name']),
+                             current_picture,
+                             nb_pictures)
 
             while True:
                 event = pygame.event.wait()
