@@ -14,12 +14,23 @@ logging.basicConfig(level = logging.DEBUG)
 
 if platform.system() == 'Windows':
     os.environ['SDL_VIDEODRIVER'] = 'windib'
+    class OMXPlayer(file):
+        def __init__(self, file):
+            print("Fake player : %s" % file)
+            self._is_playing = True
+            time.sleep(5)
+            self._is_playing = False
+            print("Fake player : stop")
+
+        def is_playing(self):
+            return self._is_playing
+
 else:
     from omxplayer import OMXPlayer
 
 data_dir = os.getenv('FAMILY_BOX_DATA')
 if not data_dir:
-    data_dir = 'data/'
+    data_dir = 'data'
 
 def get_selection(event):
     if event.key >= 256:
@@ -30,7 +41,10 @@ def get_selection(event):
         except:
             selection = event.unicode
 
-    return selection
+    if selection in range(10):
+        return selection
+    else:
+        return None
 
 class Gui:
     screen = None;
@@ -133,11 +147,9 @@ class Gui:
             self.screen.blit(menu_surface, (x + 10, y + int(self.box_size / 2) - 10 + offset))
 
     def drawExplorerMenu(self, title, path):
-        self.screen.fill((0, 0, 0))
+        self.clear()
 
-        title_font = pygame.font.Font(None, 40)
-        title_surface = title_font.render(title, True, (0, 0, 240), (0, 0, 0))
-        self.screen.blit(title_surface, (0, 0))
+        self.drawTopMenu(title)
 
         self.drawBox(0, (20, self.height / 2 - self.box_size / 2), 'Accueil')
 
@@ -164,7 +176,7 @@ class Gui:
         self.drawBox(0, (20, self.height / 2 - self.box_size / 2), 'Accueil')
 
         if error:
-            self.drawTopMenu("Une erreur est survenur", color=(244, 0, 0))
+            self.drawTopMenu("Une erreur est survenue", color=(244, 0, 0))
 
         n = 1
         for row in range(self.rows):
@@ -189,7 +201,8 @@ class Gui:
         gui.drawMenu('Photos', ['Ordre|normal', 'Ordre|inverse'])
 
     def drawVideosMenu(self):
-        gui.drawMenu('Videos', ['Toutes'])
+        gui.current_path = 'Videos'
+        gui.drawExplorerMenu('Videos', 'Videos')
 
     def drawMoviesMenu(self):
         gui.current_path = 'Films'
@@ -295,17 +308,20 @@ while True:
     if event.type == pygame.KEYDOWN:
 	#print(event)
         selection = get_selection(event)
+        if selection is None:
+            continue
+        print("Selection : %s" % selection)
+
+        if selection == 0:
+            gui.state = 'home'
+            gui.drawHome()
 
         # Go back to main screen if error
         try:
-            if gui.state == 'movies':
+            if gui.state == 'explorer':
                 new_path = gui.current_choices[selection - 1]
                 if os.path.isfile(os.path.join(data_dir, new_path)):
-                    menu_font = pygame.font.Font(None, 40)
-                    menu_surface = menu_font.render(
-                        "Appuyer sur : 0 pour arreter, 4 pour reculer, 5 pour pause, 6 pour accelerer", True,
-                        (0, 0, 230), (0, 0, 0))
-                    self.screen.blit(menu_surface, (0, 0))
+                    gui.drawTopMenu("Appuyer sur : 0 pour arreter, 4 pour reculer, 5 pour pause, 6 pour accelerer")
                     pygame.display.flip()
 
                     player = OMXPlayer(os.path.join(data_dir, new_path))
@@ -326,8 +342,13 @@ while True:
                             player.seek(60)
                             sleep = 0
                         time.sleep(0)
-                    new_path = os.path.join(new_path.split('/')[:-1])
-                    gui.drawExplorerMenu(data_dir, new_path)
+
+                    parent = new_path.split(os.path.sep)[:-1]
+                    if len(parent) > 1:
+                        new_path = os.path.join(parent)
+                    else:
+                        new_path = parent[0]
+                    gui.drawExplorerMenu(new_path, new_path)
                 else:
                     gui.drawExplorerMenu(new_path, new_path)
 
@@ -343,19 +364,12 @@ while True:
                     gui.drawPicturesMenu()
 
                 if selection == 2:
-                    gui.state = 'videos'
+                    gui.state = 'explorer'
                     gui.drawVideosMenu()
 
                 if selection == 3:
-                    gui.state = 'movies'
+                    gui.state = 'explorer'
                     gui.drawMoviesMenu()
-
-                #if selection == 2:
-                #    gui.state = 'videos'
-                #    logging.info("Video")
-                #    mov = gui.movie.Movie('data/videos/DSC_0013.MOV')
-                #    mov.set_display(gui.screen)
-                #    mov.play()
 
             error = False
 
@@ -368,10 +382,6 @@ while True:
         if error:
             gui.state = 'home'
             gui.drawHome(error)
-
-        if selection == 0:
-            gui.state = 'home'
-            gui.drawHome()
 
         if selection == 9:
             exit(0)
