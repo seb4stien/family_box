@@ -186,8 +186,7 @@ class Gui:
                        None, None, None], -1, error=error)
 
     def drawPicturesMenu(self):
-        gui.drawMenu('Photos', ['Toutes', None, None,
-                      '10|dernieres', '20|dernieres'])
+        gui.drawMenu('Photos', ['Ordre|normal', 'Ordre|inverse'])
 
     def drawVideosMenu(self):
         gui.drawMenu('Videos', ['Toutes'])
@@ -225,7 +224,7 @@ class Gui:
         pygame.display.flip()
 
 
-    def showSlideshow(self, n=None):
+    def showSlideshow(self, n=None, reverse=False):
         logging.info("Slideshow")
 
         good_pictures = []
@@ -244,6 +243,9 @@ class Gui:
         good_pictures.sort(key = lambda p: p['mtime'])
         if n and n < len(good_pictures):
             good_pictures = good_pictures[0:n]
+
+        if reverse:
+            good_pictures.reverse()
 
         logging.debug("Good pictures : %s" % good_pictures)
         stopped = False
@@ -333,9 +335,7 @@ while True:
                 if selection == 1:
                     gui.showSlideshow()
                 if selection == 2:
-                    gui.showSlideshow(2)
-                if selection == 3:
-                    gui.showSlideshow(3)
+                    gui.showSlideshow(reverse = True)
 
             if gui.state == 'home':
                 if selection == 1:
