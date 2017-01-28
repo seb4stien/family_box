@@ -3,6 +3,7 @@
 import os
 import pygame
 import time
+import subprocess
 import random
 import platform
 import logging
@@ -10,17 +11,19 @@ import logging
 import sys
 import traceback
 
+base_dir = os.path.dirname(__file__)
+
 logging.basicConfig(level = logging.DEBUG)
 
 if platform.system() == 'Windows':
     os.environ['SDL_VIDEODRIVER'] = 'windib'
     class OMXPlayer(file):
         def __init__(self, file):
-            print("Fake player : %s" % file)
+            logging.info("Fake player : %s" % file)
             self._is_playing = True
             time.sleep(5)
             self._is_playing = False
-            print("Fake player : stop")
+            logging.info("Fake player : stop")
 
         def is_playing(self):
             return self._is_playing
@@ -30,7 +33,7 @@ else:
 
 data_dir = os.getenv('FAMILY_BOX_DATA')
 if not data_dir:
-    data_dir = 'data'
+    data_dir = os.path.join(base_dir, 'data')
 
 def get_selection(event):
     if event.key >= 256:
@@ -57,7 +60,7 @@ class Gui:
         disp_no = os.getenv("DISPLAY")
 
         if disp_no:
-            print "I'm running under X display = {0}".format(disp_no)
+            logging.info("I'm running under X display = {0}".format(disp_no))
         
         # Check which frame buffer drivers are available
         # Start with fbcon since directfb hangs with composite output
@@ -70,7 +73,7 @@ class Gui:
             try:
                 pygame.display.init()
             except pygame.error:
-                print 'Driver: {0} failed.'.format(driver)
+                logging.error('Driver: {0} failed.'.format(driver))
                 continue
             found = True
             break
@@ -81,7 +84,7 @@ class Gui:
         size = (pygame.display.Info().current_w, pygame.display.Info().current_h)
         self.width = size[0]
         self.height = size[1]
-        print "Framebuffer size: %d x %d" % (self.width, self.height)
+        logging.info("Framebuffer size: %d x %d" % (self.width, self.height))
 
         self.screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
         #self.screen = pygame.display.set_mode((1000, 800))
@@ -306,11 +309,10 @@ while True:
     event = pygame.event.wait()
 	
     if event.type == pygame.KEYDOWN:
-	#print(event)
         selection = get_selection(event)
         if selection is None:
             continue
-        print("Selection : %s" % selection)
+        logging.debug("Selection : %s" % selection)
 
         if selection == 0:
             gui.state = 'home'
@@ -327,7 +329,7 @@ while True:
                     player = OMXPlayer(os.path.join(data_dir, new_path))
                     time.sleep(2)
                     while player.is_playing():
-                        print("Playing")
+                        logging.debug("Playing")
                         event = pygame.event.poll()
                         sel = get_selection(event)
                         sleep = 1
@@ -343,9 +345,13 @@ while True:
                             sleep = 0
                         time.sleep(0)
 
+                    # kill omxplayer to be sure :)
+                    if platform.system() != 'Windows':
+                        subprocess.call(os.path.dirname(base_dir) + "/bin/kill-omxplayer")
+
                     parent = new_path.split(os.path.sep)[:-1]
                     if len(parent) > 1:
-                        new_path = os.path.join(parent)
+                        new_path = os.path.sep.join(parent)
                     else:
                         new_path = parent[0]
                     gui.drawExplorerMenu(new_path, new_path)
@@ -377,6 +383,7 @@ while True:
             error = True
             exc_type, exc_value, exc_traceback = sys.exc_info()
             traceback.print_exc(exc_traceback)
+            logging.error(repr(exc_traceback))
 
 
         if error:
@@ -385,6 +392,10 @@ while True:
 
         if selection == 9:
             exit(0)
+
+
+        while pygame.event.get():
+            pass
 
 	
 # time.sleep(5)
