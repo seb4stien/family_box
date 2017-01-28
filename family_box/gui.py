@@ -330,25 +330,37 @@ while True:
 
                     player = OMXPlayer(os.path.join(data_dir, new_path))
                     time.sleep(2)
-                    while player.is_playing():
+                    status = "play"
+                    while player.playback_status() in ['Playing', 'Paused']:
                         logging.debug("Playing")
                         event = pygame.event.poll()
-                        sel = get_selection(event)
+                        if event != pygame.NOEVENT and event.type == pygame.KEYDOWN:
+                            sel = get_selection(event)
+                        else:
+                            sel = None
                         sleep = 1
                         if sel == 0:
                             player.stop()
                         if sel == 5:
-                            player.pause()
+                            if status == "play":
+                                status = "pause"
+                                player.pause()
+                            else:
+                                status = "play"
+                                player.play()
                         if sel == 4:
-                            player.seek(-60)
+                            pos = player.position()
+                            player.set_position(pos - 60)
                             sleep = 0
                         if sel == 6:
-                            player.seek(60)
+                            pos = player.position()
+                            player.set_position(pos + 60)
                             sleep = 0
-                        time.sleep(0)
+                        time.sleep(sleep)
 
                     # kill omxplayer to be sure :)
                     if platform.system() != 'Windows':
+                        time.sleep(2)
                         subprocess.call(os.path.dirname(base_dir) + "/bin/kill-omxplayer")
 
                     parent = new_path.split(os.path.sep)[:-1]
