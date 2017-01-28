@@ -13,9 +13,10 @@ import traceback
 
 base_dir = os.path.dirname(__file__)
 
-logging.basicConfig(level = logging.DEBUG)
 
 if platform.system() == 'Windows':
+    logging.basicConfig(level=logging.DEBUG, filename="family_pi.log")
+
     os.environ['SDL_VIDEODRIVER'] = 'windib'
     class OMXPlayer(file):
         def __init__(self, file):
@@ -29,6 +30,7 @@ if platform.system() == 'Windows':
             return self._is_playing
 
 else:
+    logging.basicConfig(level=logging.DEBUG, filename="/tmp/family_pi.log")
     from omxplayer import OMXPlayer
 
 data_dir = os.getenv('FAMILY_BOX_DATA')
@@ -381,9 +383,9 @@ while True:
 
         except:
             error = True
-            exc_type, exc_value, exc_traceback = sys.exc_info()
-            traceback.print_exc(exc_traceback)
-            logging.error(repr(exc_traceback))
+            #exc_type, exc_value, exc_traceback = sys.exc_info()
+            #traceback.print_exc(exc_traceback)
+            logging.exception("Got exception in main loop")
 
 
         if error:
