@@ -3,6 +3,7 @@
 import os
 import pygame
 import time
+import subprocess
 import random
 import platform
 import logging
@@ -10,7 +11,31 @@ import logging
 import sys
 import traceback
 
-logging.basicConfig(level = logging.DEBUG)
+base_dir = os.path.dirname(__file__)
+
+
+if platform.system() == 'Windows':
+    logging.basicConfig(level=logging.DEBUG, filename="family_pi.log")
+
+    os.environ['SDL_VIDEODRIVER'] = 'windib'
+    class OMXPlayer(file):
+        def __init__(self, file):
+            logging.info("Fake player : %s" % file)
+            self._is_playing = True
+            time.sleep(5)
+            self._is_playing = False
+            logging.info("Fake player : stop")
+
+        def is_playing(self):
+            return self._is_playing
+
+else:
+    logging.basicConfig(level=logging.DEBUG, filename="/tmp/family_pi.log")
+    from omxplayer import OMXPlayer
+
+data_dir = os.getenv('FAMILY_BOX_DATA')
+if not data_dir:
+    data_dir = os.path.join(base_dir, 'data')
 
 def get_selection(event):
     if event.key >= 256:
@@ -21,7 +46,10 @@ def get_selection(event):
         except:
             selection = event.unicode
 
-    return selection
+    if selection in range(10):
+        return selection
+    else:
+        return None
 
 class Gui:
     screen = None;
@@ -33,11 +61,8 @@ class Gui:
 	# and https://learn.adafruit.com/pi-video-output-using-pygame/pointing-pygame-to-the-framebuffer
         disp_no = os.getenv("DISPLAY")
 
-        if platform.system() == 'Windows':
-            os.environ['SDL_VIDEODRIVER'] = 'windib'
-
         if disp_no:
-            print "I'm running under X display = {0}".format(disp_no)
+            logging.info("I'm running under X display = {0}".format(disp_no))
         
         # Check which frame buffer drivers are available
         # Start with fbcon since directfb hangs with composite output
@@ -50,7 +75,7 @@ class Gui:
             try:
                 pygame.display.init()
             except pygame.error:
-                print 'Driver: {0} failed.'.format(driver)
+                logging.error('Driver: {0} failed.'.format(driver))
                 continue
             found = True
             break
@@ -61,7 +86,7 @@ class Gui:
         size = (pygame.display.Info().current_w, pygame.display.Info().current_h)
         self.width = size[0]
         self.height = size[1]
-        print "Framebuffer size: %d x %d" % (self.width, self.height)
+        logging.info("Framebuffer size: %d x %d" % (self.width, self.height))
 
         self.screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
         #self.screen = pygame.display.set_mode((1000, 800))
@@ -85,6 +110,14 @@ class Gui:
 
     def __del__(self):
         "Destructor to make sure pygame shuts down, etc."
+
+    def clear(self):
+        self.screen.fill((0, 0, 0))
+
+    def drawTopMenu(self, text, color=(0, 0, 230)):
+        menu_font = pygame.font.Font(None, 40)
+        menu_surface = menu_font.render(text, True, color, (0, 0, 0))
+        self.screen.blit(menu_surface, (0, 0))
 
 		
     def drawBox(self, n, (x, y), text):
@@ -118,21 +151,37 @@ class Gui:
             menu_surface = menu_font.render("%s" % text2, True, fg, box_bg)
             self.screen.blit(menu_surface, (x + 10, y + int(self.box_size / 2) - 10 + offset))
 
+    def drawExplorerMenu(self, title, path):
+        self.clear()
+
+        self.drawTopMenu(title)
+
+        self.drawBox(0, (20, self.height / 2 - self.box_size / 2), 'Accueil')
+
+        font_size = 40
+        entry_font = pygame.font.Font(None, font_size)
+
+        n = 1
+        self.current_choices = []
+        for file in os.listdir(os.path.join(data_dir, path)):
+            self.current_choices.append(os.path.join(path, file))
+            entry_surface = entry_font.render(str(n) + " - " + file, True, (150, 150, 250), (0, 0, 0))
+            self.screen.blit(entry_surface, (self.box_size + 100, font_size + font_size * n))
+            n += 1
+
+        pygame.display.update()
+
 
     def drawMenu(self, title, menu=[], selection=-1, error=False):
 
-        self.screen.fill((0, 0, 0))
+        self.clear()
 
-        title_font = pygame.font.Font(None, 40)
-        title_surface = title_font.render(title, True, (0, 0, 240), (0, 0, 0))
-        self.screen.blit(title_surface, (0, 0))
+        self.drawTopMenu(title)
 
         self.drawBox(0, (20, self.height / 2 - self.box_size / 2), 'Accueil')
 
         if error:
-            error_font = pygame.font.Font(None, 40)
-            error_surface = error_font.render("Une erreur est survenue.", True, (244, 0, 0), (0, 0, 0))
-            self.screen.blit(error_surface, (0, 0))
+            self.drawTopMenu("Une erreur est survenue", color=(244, 0, 0))
 
         n = 1
         for row in range(self.rows):
@@ -142,26 +191,32 @@ class Gui:
                     y = self.margin + row * self.box_size + row * int(self.margin/2)
 
                     if menu[n-1]:
-                        self.drawBox(n, (x, y), menu[n-1])
+                        self.drawBox(n, (x, self.height - y - self.box_size), menu[n-1])
 
                 n += 1
 
         pygame.display.update()
     
     def drawHome(self, error=False):
-        gui.drawMenu('Accueil', ['Photos', None, None,
+        gui.drawMenu('Accueil', ['Photos', 'Videos', 'Films',
                        None, None, None,
-                       'Nouvelles|photos', None, None], -1, error=error)
+                       None, None, None], -1, error=error)
 
     def drawPicturesMenu(self):
-        gui.drawMenu('Photos', ['Toutes', None, None,
-                      '10|dernieres', '20|dernieres'], selection)
+        gui.drawMenu('Photos', ['Ordre|normal', 'Ordre|inverse'])
+
+    def drawVideosMenu(self):
+        gui.current_path = 'Videos'
+        gui.drawExplorerMenu('Videos', 'Videos')
+
+    def drawMoviesMenu(self):
+        gui.current_path = 'Films'
+        gui.drawExplorerMenu('Films', 'Films')
 
 
+    def showPicture(self, picture_path, current, nb):
+        self.clear()
 
-
-    def showPicture(self, picture_path):
-        self.screen.fill((0, 0, 0))
         picture = pygame.image.load(picture_path)
 
         (width, height) = picture.get_size()
@@ -175,33 +230,40 @@ class Gui:
 
         (width, height) = picture.get_size()
         self.screen.blit(picture, ((self.width - width) / 2, (self.height - height) / 2))
-#        pygame.display.flip()
 
-        menu_font = pygame.font.Font(None, 40)
-        menu_surface = menu_font.render("Appuyer sur : 0 pour arreter, 4 pour la photo precedente, 6 pour la photo suivante", True, (0, 0, 230), (0, 0, 0))
-        self.screen.blit(menu_surface, (0, 0))
+        if current == 0:
+            title = "Appuyer sur 0 pour quitter ou 6 pour la photo suivante"
+        elif current == nb - 1:
+            title = "Appuyer sur 0 pour quitter, 4 pour la photo precedente"
+        else:
+            title = "Appuyer sur 0 pour quitter, 4 pour la photo precedente ou 6 pour la photo suivante"
+
+        self.drawTopMenu("Photo %d sur %d : " % (current + 1, nb) + title)
         pygame.display.flip()
 
 
-    def showSlideshow(self, n=None):
+    def showSlideshow(self, n=None, reverse=False):
         logging.info("Slideshow")
 
         good_pictures = []
 
-        for picture in os.listdir('data/pictures'):
+        for picture in os.listdir(os.path.join(data_dir, 'Photos')):
             if '.' in picture:
                 ext = picture.split('.')[-1].lower()
 
                 if ext in ['jpg', 'jpeg', 'gif', 'png']:
                     good_pictures.append(
                         {'name': picture,
-                         'mtime': os.path.getmtime('data/pictures/%s' % picture)}
+                         'mtime': os.path.getmtime(os.path.join(data_dir, 'Photos', picture))}
                     )
 
         logging.debug("Raw pictures : %s" % good_pictures)
         good_pictures.sort(key = lambda p: p['mtime'])
         if n and n < len(good_pictures):
             good_pictures = good_pictures[0:n]
+
+        if reverse:
+            good_pictures.reverse()
 
         logging.debug("Good pictures : %s" % good_pictures)
         stopped = False
@@ -210,7 +272,9 @@ class Gui:
         current_picture = 0
 
         while True:
-            self.showPicture('data/pictures/%s' % good_pictures[current_picture]['name'])
+            self.showPicture(os.path.join(data_dir, 'Photos', good_pictures[current_picture]['name']),
+                             current_picture,
+                             nb_pictures)
 
             while True:
                 event = pygame.event.wait()
@@ -247,50 +311,105 @@ while True:
     event = pygame.event.wait()
 	
     if event.type == pygame.KEYDOWN:
-	#print(event)
         selection = get_selection(event)
+        if selection is None:
+            continue
+        logging.debug("Selection : %s" % selection)
+
+        if selection == 0:
+            gui.state = 'home'
+            gui.drawHome()
 
         # Go back to main screen if error
         try:
+            if gui.state == 'explorer':
+                new_path = gui.current_choices[selection - 1]
+                if os.path.isfile(os.path.join(data_dir, new_path)):
+                    gui.drawTopMenu("Appuyer sur : 0 pour arreter, 4 pour reculer, 5 pour pause, 6 pour accelerer")
+                    pygame.display.flip()
+
+                    player = OMXPlayer(os.path.join(data_dir, new_path))
+                    time.sleep(2)
+                    status = "play"
+                    while player.playback_status() in ['Playing', 'Paused']:
+                        logging.debug("Playing")
+                        event = pygame.event.poll()
+                        if event != pygame.NOEVENT and event.type == pygame.KEYDOWN:
+                            sel = get_selection(event)
+                        else:
+                            sel = None
+                        sleep = 1
+                        if sel == 0:
+                            player.stop()
+                        if sel == 5:
+                            if status == "play":
+                                status = "pause"
+                                player.pause()
+                            else:
+                                status = "play"
+                                player.play()
+                        if sel == 4:
+                            pos = player.position()
+                            player.set_position(pos - 60)
+                            sleep = 0
+                        if sel == 6:
+                            pos = player.position()
+                            player.set_position(pos + 60)
+                            sleep = 0
+                        time.sleep(sleep)
+
+                    # kill omxplayer to be sure :)
+                    if platform.system() != 'Windows':
+                        time.sleep(2)
+                        subprocess.call(os.path.dirname(base_dir) + "/bin/kill-omxplayer")
+
+                    parent = new_path.split(os.path.sep)[:-1]
+                    if len(parent) > 1:
+                        new_path = os.path.sep.join(parent)
+                    else:
+                        new_path = parent[0]
+                    gui.drawExplorerMenu(new_path, new_path)
+                else:
+                    gui.drawExplorerMenu(new_path, new_path)
+
             if gui.state == 'pictures':
                 if selection == 1:
                     gui.showSlideshow()
                 if selection == 2:
-                    gui.showSlideshow(2)
-                if selection == 3:
-                    gui.showSlideshow(3)
-
+                    gui.showSlideshow(reverse = True)
 
             if gui.state == 'home':
                 if selection == 1:
                     gui.state = 'pictures'
                     gui.drawPicturesMenu()
 
-                #if selection == 2:
-                #    gui.state = 'videos'
-                #    logging.info("Video")
-                #    mov = gui.movie.Movie('data/videos/DSC_0013.MOV')
-                #    mov.set_display(gui.screen)
-                #    mov.play()
+                if selection == 2:
+                    gui.state = 'explorer'
+                    gui.drawVideosMenu()
+
+                if selection == 3:
+                    gui.state = 'explorer'
+                    gui.drawMoviesMenu()
 
             error = False
 
         except:
             error = True
-            exc_type, exc_value, exc_traceback = sys.exc_info()
-            traceback.print_exc(exc_traceback)
+            #exc_type, exc_value, exc_traceback = sys.exc_info()
+            #traceback.print_exc(exc_traceback)
+            logging.exception("Got exception in main loop")
 
 
         if error:
             gui.state = 'home'
             gui.drawHome(error)
 
-        if selection == 0:
-            gui.state = 'home'
-            gui.drawHome()
-
         if selection == 9:
             exit(0)
+
+
+        while pygame.event.get():
+            pass
 
 	
 # time.sleep(5)
