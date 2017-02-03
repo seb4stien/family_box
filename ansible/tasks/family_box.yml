@@ -15,6 +15,11 @@
     name: "{{ item }}"
   with_items:
     - python-pygame
+    - virtualenv
+    - omxplayer
+    - python-pip
+    - python-dbus
+    - cec-utils
 
 - name: Create data directories
   file:
@@ -38,3 +43,19 @@
   git:
     repo: https://github.com/seb4stien/family_box.git
     dest: "{{ app_path }}"
+
+- name: Install requirement
+  pip:
+    name: omxplayer-wrapper
+    virtualenv: "{{ app_path }}_venv"
+    virtualenv_site_packages: yes
+
+- name: Set gui on boot
+  blockinfile:
+    dest: /etc/rc.local
+    block: |
+      . /opt/family_pi_venv/bin/activate
+      python /opt/family_pi/family_box/gui.py
+    insertbefore: "exit 0"
+  tags:
+    - tmp
