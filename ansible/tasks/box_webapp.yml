@@ -1,0 +1,33 @@
+- name: Install requirements
+  apt:
+    name: "{{ item }}"
+  with_items:
+    - apache2
+    - libapache2-mod-php5
+
+- name: Install omxremote
+  get_url:
+    url: https://github.com/sosedoff/omxremote/releases/download/v0.1.1/omxremote
+    dest: /usr/local/bin/omxremote
+    mode: 655
+
+- name: Create systemd service
+  copy:
+    src: files/etc/systemd/system/omxremote.service
+    dest: /etc/systemd/system/omxremote.service
+
+- name: Setup apache modules
+  apache2_module:
+    state: present
+    name: "{{ item }}"
+  with_items:
+    - proxy
+    - proxy_http
+
+- name: Setup apache vhost
+  template:
+    src: templates/etc/apache2/sites-available/000-default.conf.j2
+    dest: /etc/apache2/sites-enabled/000-default.conf
+
+- name: (workaround) Configure systemd
+  shell: systemctl enable apache2 omxremote

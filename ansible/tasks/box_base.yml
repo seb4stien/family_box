@@ -1,0 +1,39 @@
+- name: Disable screen blanking
+  lineinfile:
+    dest: /etc/kbd/config
+    regexp: '^BLANK_TIME='
+    line: 'BLANK_TIME=0'
+
+- name: Disable auto start on TV
+  lineinfile:
+    dest: /boot/config.txt
+    regexp: '^hdmi_ignore_cec_init='
+    line: 'hdmi_ignore_cec_init=1'
+
+- name: Update cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Install requirements
+  apt:
+    name: "{{ item }}"
+  with_items:
+    - omxplayer
+    - cec-utils
+
+- name: Create data directories
+  file:
+    path: "{{ item }}"
+    owner: family_pi
+    state: directory
+  with_items:
+    - "/mnt/media"
+    - "/mnt/media/videos"
+    - "/mnt/media/pictures"
+    - "/mnt/media/movies"
+
+- name: Install app
+  git:
+    repo: https://github.com/seb4stien/family_box.git
+    dest: "{{ app_path }}"

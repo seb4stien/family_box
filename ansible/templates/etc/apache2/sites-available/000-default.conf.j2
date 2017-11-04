@@ -1,0 +1,12 @@
+<VirtualHost *:80>
+	ServerAdmin webmaster@localhost
+	DocumentRoot {{ app_path }}/webapp
+
+	ErrorLog ${APACHE_LOG_DIR}/error.log
+	CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+	ProxyRequests On
+	ProxyPass /status "http://127.0.0.1:8080/status"
+	ProxyPass /play "http://127.0.0.1:8080/play"
+	ProxyPass /command "http://127.0.0.1:8080/command"
+</VirtualHost>

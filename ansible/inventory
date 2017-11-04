@@ -1,0 +1,11 @@
+[localhost]
+localhost
+
+[localhost:vars]
+default_user=family_pi
+ssh_port=2226
+host_name=bgx2
+host_domain=pi.georget.name
+mail_relay=
+admin_mail=sebastien@georget.name
+app_path=/opt/family_pi

@@ -1,0 +1,12 @@
+[Unit]
+Description=omxremote
+After=network.target
+
+[Service]
+User=seb
+Type=simple
+ExecStart=/usr/local/bin/omxremote /mnt/media
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

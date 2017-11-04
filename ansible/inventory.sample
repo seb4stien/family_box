@@ -8,3 +8,4 @@ host_name=pi_xxx
 host_domain=
 mail_relay=
 admin_mail=
+app_path=/opt/family_pi
