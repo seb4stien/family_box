@@ -20,6 +20,8 @@
     - python-pip
     - python-dbus
     - cec-utils
+    - apache2
+    - libapache2-mod-php5
 
 - name: Create data directories
   file:
@@ -27,10 +29,10 @@
     owner: family_pi
     state: directory
   with_items:
-    - "/srv/family_pi"
-    - "/srv/family_pi/videos"
-    - "/srv/family_pi/pictures"
-    - "/srv/family_pi/movies"
+    - "/mnt/media"
+    - "/mnt/media/videos"
+    - "/mnt/media/pictures"
+    - "/mnt/media/movies"
 
 - name: "Set sudo to light on/off"
   lineinfile:

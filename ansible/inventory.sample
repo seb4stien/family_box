@@ -2,8 +2,6 @@
 localhost
 
 [localhost:vars]
-network_ssid=
-network_psk=
 default_user=yyy
 ssh_port=10022
 host_name=pi_xxx
