@@ -21,6 +21,8 @@
   with_items:
     - omxplayer
     - cec-utils
+    - hostapd
+    - isc-dhcp-server
 
 - name: Create data directories
   file:
@@ -37,3 +39,14 @@
   git:
     repo: https://github.com/seb4stien/family_box.git
     dest: "{{ app_path }}"
+
+- name: Setup DHCP
+  template:
+    src: templates/etc/dhcp/dhcpd.conf.j2
+    dest: /etc/dhcp/dhcpd.conf
+
+- name: Setup wifi hotspot
+  template:
+    src: templates/etc/hostapd/hostapd.conf.j2
+    dest: /etc/hostapd/hostapd.conf
+

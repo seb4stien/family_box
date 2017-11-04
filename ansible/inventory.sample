@@ -9,3 +9,6 @@ host_domain=
 mail_relay=
 admin_mail=
 app_path=/opt/family_pi
+wifi_subnet_prefix=192.168.33
+wifi_passphrase=xxx
+wifi_ssid=familybox

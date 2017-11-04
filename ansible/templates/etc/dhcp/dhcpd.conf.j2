@@ -1,0 +1,21 @@
+ddns-update-style none;
+
+option domain-name "internal.{{ host_domain }}";
+option domain-name-servers ns1.{{ host_domain }}, ns2.{{ host_domain }};
+
+default-lease-time 600;
+max-lease-time 7200;
+
+authoritative;
+
+log-facility local7;
+
+subnet {{ wifi_subnet_prefix }}.0 netmask 255.255.255.0 {
+  range {{ wifi_subnet_prefix }}.10 {{ wifi_subnet_prefix }}.30;
+  option domain-name-servers ns1.{{ host_domain }};
+  option domain-name "{{ host_domain }}";
+  option routers {{ wifi_subnet_prefix }}.1;
+  option broadcast-address {{ wifi_subnet_prefix }}.255;
+  default-lease-time 600;
+  max-lease-time 7200;
+}
