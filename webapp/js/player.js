@@ -1,5 +1,5 @@
-angular.module('playerApp', [])
-.config(['$sceDelegateProvider', function($sceDelegateProvider) {
+angular.module('playerApp', ['ngRoute'])
+.config(['$sceDelegateProvider', '$routeProvider', function($sceDelegateProvider, $routeProvider) {
 	$sceDelegateProvider.resourceUrlWhitelist([
 			'self'
 	]);
