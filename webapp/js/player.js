@@ -3,6 +3,19 @@ angular.module('playerApp', ['ngRoute'])
 	$sceDelegateProvider.resourceUrlWhitelist([
 			'self'
 	]);
+
+	$routeProvider.
+       		when('/', {
+			templateUrl: 'partials/home.html',
+		}).
+       		when('/phones', {
+			template: 'plip',
+		}).
+		when('/phones/:phoneId', {
+			template: 'plop{{ phoneId }}'
+		}).
+		otherwise('/');
+
 }])
 .controller('playerController', ['$scope', '$http', '$window',
 		function($scope, $http, $window) {
