@@ -5,16 +5,16 @@ angular.module('playerApp', ['ngRoute'])
 	]);
 
 	$routeProvider.
-       		when('/', {
+		when('/', {
 			templateUrl: 'partials/home.html',
 		}).
-       		when('/phones', {
-			template: 'plip',
-		}).
-		when('/phones/:phoneId', {
-			template: 'plop{{ phoneId }}'
-		}).
-		otherwise('/');
+	when('/phones', {
+		template: 'plip',
+	}).
+	when('/phones/:phoneId', {
+		template: 'plop{{ phoneId }}'
+	}).
+	otherwise('/');
 
 }])
 .controller('playerController', ['$scope', '$http', '$window',
