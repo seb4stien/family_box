@@ -19,7 +19,7 @@
 			<nav class="navbar navbar-dark bg-dark">
 				<b><a class="navbar-brand" href="/">Contrôle de la TV</a></b>
 				<ul class="navbar-nav">
-					<li class="nav-item"><a class="nav-link" href="#">aide</a></li>
+					<li class="nav-item"><a class="nav-link" href="#"><b>aide</b></a></li>
 				</ul>
 			</nav>
 
