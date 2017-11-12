@@ -10,32 +10,28 @@ tvApp.config(['$stateProvider', function($stateProvider) {
 		.state('help', {'url': '/help', templateUrl: 'partials/help.html'})
 }]);
 
-tvApp.controller('playerController', ['$scope', '$http', '$window', '$stateParams',
-		function($scope, $http, $window, $stateParams) {
+tvApp.controller('playerController', ['$scope', '$http', '$window', '$stateParams', '$state',
+		function($scope, $http, $window, $stateParams, $state) {
 			$scope.method = 'GET';
 			$scope.url = '/';
+			$scope.pause = false;
 
-			var catalog = [
-					'Un village français'
-					];
+			if ($stateParams.video) {
+					video = $stateParams.video;
+					if (video.charAt(0) == '/') {
+							video = $stateParams.video.substr(1);
+					}
 
-			var detailedCatalog = {
-					'/Un village français': ['Saison 1', 'Saison 2'],
-					'/Un village français/Saison 1': ['Episode 1'],
-					'/Un village français/Saison 2': ['Episode 2']
-			}
-
-			if ($stateParams.video == '') {
-				$scope.videos = catalog;
+					if (detailedCatalog[video]) {
+							$scope.videoPath = video;
+							$scope.videos = detailedCatalog[video];
+					} else {
+							$scope.videos = 'player';
+							$scope.videoPath = $stateParams.video;
+							$scope.playerCommand('play', video);
+					}
 			} else {
-				if (detailedCatalog[$stateParams.video]) {
-					$scope.parentVideo = $stateParams.video;
-					$scope.videos = detailedCatalog[$stateParams.video];
-				} else {
-					$scope.videos = 'player';
-					$scope.parentVideo = $stateParams.video;
-					$scope.player = true;
-				}
+					$scope.videos = catalog;
 			}
 
 			$scope.playerCommand = function(command, args) {
@@ -44,7 +40,14 @@ tvApp.controller('playerController', ['$scope', '$http', '$window', '$stateParam
 				$scope.command = command;
 
 				if (command == "play") {
-					$scope.url = "/play?file=" + args;
+					$scope.url = "/play?file=" + args + '.mp4';
+				} else if (command == "pause") {
+					$scope.url = "/command/pause";
+					if ($scope.pause == true) {
+						$scope.pause = false;
+					} else {
+						$scope.pause = true;
+					}
 				} else if (command == "status") {
 					$scope.url = "/status";
 				} else if (command == "tvon") {
@@ -57,6 +60,11 @@ tvApp.controller('playerController', ['$scope', '$http', '$window', '$stateParam
 					then(function(response) {
 						$scope.status = response.status;
 						$scope.data = response.data;
+
+						if ($scope.command == 'stop') {
+								path = $scope.videoPath.match('(.*)/')[1];
+								$state.go('video-player', {'video': path});
+						}
 					}, function(response) {
 						$scope.data = response.data || 'Request failed';
 						$scope.status = response.status;
