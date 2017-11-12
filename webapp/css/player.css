@@ -1,0 +1,13 @@
+@media (min-width: 576px) {
+     .sidebar {
+          max-width: 200px;
+     }
+}
+
+html {
+	font-size: 30px;
+}
+
+.sidebar li {
+	font-weight: bold;
+}

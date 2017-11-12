@@ -1,0 +1,24 @@
+<div>
+	<div class="card">
+		<div class="card-header text-center">
+			{{ tv[step].label }}
+		</div>
+		<div class="card-body text-center">
+			<button class="btn btn-success" ng-click="playerCommand('tvon')" ng-if="command != 'tvon'">
+					Appuyer sur ce bouton et attendre 10 secondes
+			</button>
+			<button class="btn btn-default" ng-if="command == 'tvon' && status != 200">
+					Démarrage en cours
+			</button>
+			<p class="text-center" ng-if="status == 200 && command == 'tvon'">
+				La TV devrait avoir démarré et afficher "Tablette OK".<br />
+				<br />
+				Si c'est bien le cas, cliquer sur "Vidéo" à gauche <br />
+				pour choisir une vidéo à regarder.
+			</p>
+			<p class="text-center" ng-if="status && status != 200 && command == 'tvon'">
+				Soucis avec le démarrage (erreur {{ status }} à indiquer à Sébastien).
+			</p>
+		</div>
+	</div>
+</div>

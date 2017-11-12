@@ -1,48 +1,42 @@
-angular.module('playerApp', ['ngRoute'])
-.config(['$sceDelegateProvider', '$routeProvider', function($sceDelegateProvider, $routeProvider) {
-	$sceDelegateProvider.resourceUrlWhitelist([
-			'self'
-	]);
+var tvApp = angular.module('tvApp', ['ui.router']);
 
-	$routeProvider.
-		when('/', {
-			templateUrl: 'partials/home.html',
-		}).
-	when('/phones', {
-		template: 'plip',
-	}).
-	when('/phones/:phoneId', {
-		template: 'plop{{ phoneId }}'
-	}).
-	otherwise('/');
+tvApp.config(['$stateProvider', function($stateProvider) {
+	$stateProvider
+		.state('home', {'url': '/', templateUrl: 'partials/home.html'})
+		.state('start', {'url': '/start', templateUrl: 'partials/start.html'})
+		.state('video-player', {'url': '/video-player/{video}', controller: 'playerController', templateUrl: 'partials/video-player.html'})
+		.state('photo-viewer', {'url': '/photo-viewer', templateUrl: 'partials/photo-viewer.html'})
+		.state('stop', {'url': '/stop', templateUrl: 'partials/stop.html'})
+		.state('help', {'url': '/help', templateUrl: 'partials/help.html'})
+}]);
 
-}])
-.controller('playerController', ['$scope', '$http', '$window',
-		function($scope, $http, $window) {
+tvApp.controller('playerController', ['$scope', '$http', '$window', '$stateParams',
+		function($scope, $http, $window, $stateParams) {
 			$scope.method = 'GET';
 			$scope.url = '/';
 
-			$scope.tv = {
-				'nb_steps': 2,
-				'1': {
-					label: 'Démarrer le système',
-					tvon: true
-				},
-				'2': {
-					label: 'Sélectionner une vidéo et appuyer sur lecture',
-					player: true
-				}
-			};
+			var catalog = [
+					'Un village français'
+					];
 
-			var step = $window.location.search;
-			if (!step) {
-				step = 1;
-			} else {
-				step = step.substr(1,1);
+			var detailedCatalog = {
+					'/Un village français': ['Saison 1', 'Saison 2'],
+					'/Un village français/Saison 1': ['Episode 1'],
+					'/Un village français/Saison 2': ['Episode 2']
 			}
 
-			$scope.step = step;
-			$scope.istep = parseInt(step);
+			if ($stateParams.video == '') {
+				$scope.videos = catalog;
+			} else {
+				if (detailedCatalog[$stateParams.video]) {
+					$scope.parentVideo = $stateParams.video;
+					$scope.videos = detailedCatalog[$stateParams.video];
+				} else {
+					$scope.videos = 'player';
+					$scope.parentVideo = $stateParams.video;
+					$scope.player = true;
+				}
+			}
 
 			$scope.playerCommand = function(command, args) {
 				$scope.code = null;
