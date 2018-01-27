@@ -3,6 +3,7 @@
     src: templates/etc/wpa_supplicant/wpa_supplicant.conf
     dest: /etc/wpa_supplicant/wpa_supplicant.conf
     mode: 0600
+  when: network_ssid is defined
 
 - name: Disable IPv6
   copy:
