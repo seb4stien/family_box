@@ -1,4 +1,4 @@
-- hosts: pi
+- hosts: localhost
   become: true
 
   handlers:
@@ -11,7 +11,6 @@
     tags: access 
   - include: "tasks/configure_system.yml"
     tags: system
-  - include: "tasks/cron.yml"
-    tags: cron
   - include: "tasks/family_box.yml"
     tags: family_box
+    when: family_box == True
