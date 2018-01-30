@@ -1,8 +1,0 @@
-- name: Install auto-upgrade cron
-  cron:
-    cron_file: system-upgrade
-    name: "system upgrade"
-    hour: 1
-    minute: 1
-    user: root
-    job: apt-get update && apt-get -y upgrade

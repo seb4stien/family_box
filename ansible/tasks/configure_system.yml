@@ -59,3 +59,10 @@
   alternatives:
     name: editor
     path: /usr/bin/vim
+
+- name: Configure auto-upgrades
+  apt:
+    name: "{{ item }}"
+  with_items:
+  - unattended-upgrades
+  - apt-listchanges
