@@ -1,0 +1,6 @@
+- name: Install tools
+  apt:
+    name: "{{ item }}"
+  with_items:
+  - unattended-upgrades
+  - apt-listchanges
